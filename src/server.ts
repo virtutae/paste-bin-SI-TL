@@ -19,7 +19,21 @@ app.use(cors()); //add CORS support to each following route handler
 app.get("/", async (_req, res) => {
     try {
         const allHistory = await client.query("SELECT * FROM pastes;");
-        res.json(allHistory.rows);
+        res.status(200).json(allHistory.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("An error has occured!");
+    }
+});
+
+app.post("/", async (req, res) => {
+    try {
+        const { title, text } = req.body;
+        await client.query(
+            `INSERT INTO pastes (title, text_body) VALUES ($1, $2);`,
+            [title, text]
+        );
+        res.status(201).json({ status: "It worked" });
     } catch (error) {
         console.error(error);
         res.status(500).send("An error has occured!");
