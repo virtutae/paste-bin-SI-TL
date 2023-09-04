@@ -5,28 +5,45 @@ import { Client } from "pg";
 import { getEnvVarOrFail } from "./support/envVarUtils";
 import { setupDBClientConfig } from "./support/setupDBClientConfig";
 
-dotenv.config(); //Read .env file lines as though they were env vars.
+dotenv.config();
 
 const dbClientConfig = setupDBClientConfig();
 const client = new Client(dbClientConfig);
 
-//Configure express routes
 const app = express();
 
-app.use(express.json()); //add JSON body parser to each following route handler
-app.use(cors()); //add CORS support to each following route handler
+app.use(express.json());
+app.use(cors());
 
 app.get("/", async (_req, res) => {
-    res.json({ msg: "Hello! There's nothing interesting for GET /" });
+    try {
+        const allHistory = await client.query("SELECT * FROM pastes;");
+        res.status(200).json(allHistory.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("An error has occured!");
+    }
+});
+
+app.post("/", async (req, res) => {
+    try {
+        const { title, text } = req.body;
+        await client.query(
+            `INSERT INTO pastes (title, text_body) VALUES ($1, $2);`,
+            [title, text]
+        );
+        res.status(201).json({ status: "It worked" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("An error has occured!");
+    }
 });
 
 app.get("/health-check", async (_req, res) => {
     try {
-        //For this to be successful, must connect to db
         await client.query("select now()");
         res.status(200).send("system ok");
     } catch (error) {
-        //Recover from error rather than letting system halt
         console.error(error);
         res.status(500).send("An error occurred. Check server logs.");
     }
