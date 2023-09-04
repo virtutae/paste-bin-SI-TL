@@ -5,15 +5,15 @@ import { Client } from "pg";
 import { getEnvVarOrFail } from "./support/envVarUtils";
 import { setupDBClientConfig } from "./support/setupDBClientConfig";
 
-dotenv.config(); 
+dotenv.config();
 
 const dbClientConfig = setupDBClientConfig();
 const client = new Client(dbClientConfig);
 
 const app = express();
 
-app.use(express.json()); 
-app.use(cors()); 
+app.use(express.json());
+app.use(cors());
 
 app.get("/", async (_req, res) => {
     try {
